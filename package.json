@@ -17,7 +17,9 @@
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
     "framer-motion": "^4.1.17",
-    "marked": "^4.0.12"
+    "marked": "^4.0.12",
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^10.1.0"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -28,6 +30,7 @@
     "tailwindcss": "^3.4.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
-    "@types/puppeteer": "^5.4.4"
+    "@types/puppeteer": "^5.4.4",
+    "@types/marked": "^4.0.12"
   }
 }

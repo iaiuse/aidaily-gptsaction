@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import puppeteer from 'puppeteer';
+import chromium from 'chrome-aws-lambda';
 import { marked } from 'marked';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -11,7 +11,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
     const htmlContent = marked(markdown);
-    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
     const page = await browser.newPage();
     await page.setContent(htmlContent);
     const screenshot = await page.screenshot({ encoding: 'base64' });
@@ -19,8 +24,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.status(200).json({ imageUrl: `data:image/png;base64,${screenshot}` });
   } catch (error) {
-    res.status(500).json({ message: 'Error generating image' });
+    res.status(500).json({ message: 'Error generating image', error });
   }
 };
 
-export default handler; 
+export default handler;
