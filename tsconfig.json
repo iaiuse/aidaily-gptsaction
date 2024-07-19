@@ -12,7 +12,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "forceConsistentCasingInFileNames": true,
-    "target": "es5",
     "incremental": true,
     "plugins": [
       {
