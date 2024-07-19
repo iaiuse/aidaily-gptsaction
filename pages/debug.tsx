@@ -8,11 +8,11 @@ interface Article {
   url: string;
 }
 
-export default function Debug() {
-  const [query, setQuery] = useState('');
+const Debug: React.FC = () => {
+  const [query, setQuery] = useState<string>('');
   const [news, setNews] = useState<Article[]>([]);
-  const [markdown, setMarkdown] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [markdown, setMarkdown] = useState<string>('');
+  const [imageUrl, setImageUrl] = useState<string>('');
 
   const searchNews = async () => {
     try {
@@ -77,4 +77,6 @@ export default function Debug() {
       </VStack>
     </Box>
   );
-}
+};
+
+export default Debug;
