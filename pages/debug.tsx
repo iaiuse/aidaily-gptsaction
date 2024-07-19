@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Box, Button, Input, Textarea, VStack, HStack, Heading, Text, Image } from '@chakra-ui/react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 interface Article {
@@ -31,51 +30,64 @@ const Debug: React.FC = () => {
       console.error('Error generating image', error);
     }
   };
-
+  
   return (
-    <Box p={5}>
-      <Heading mb={5}>Debug Page</Heading>
-      <VStack spacing={5}>
-        <Box w="100%">
-          <Heading size="md">Search AI News</Heading>
-          <HStack spacing={3} mt={3}>
-            <Input
+    <div className="p-5">
+      <h1 className="text-2xl font-bold mb-5">Debug Page</h1>
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Search AI News</h2>
+          <div className="flex space-x-3 mb-3">
+            <input
+              type="text"
               placeholder="Enter search term"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+              className="flex-grow px-3 py-2 border rounded"
             />
-            <Button onClick={searchNews}>Search</Button>
-          </HStack>
-          <VStack spacing={3} mt={3}>
+            <button onClick={searchNews} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              Search
+            </button>
+          </div>
+          <div className="space-y-3">
             {news.map((article, index) => (
-              <Box key={index} borderWidth="1px" borderRadius="lg" p={3} w="100%">
-                <Text fontWeight="bold">{article.title}</Text>
-                <Text>{article.description}</Text>
-                <Button as="a" href={article.url} target="_blank" mt={2} colorScheme="teal">
+              <div key={index} className="border rounded p-3">
+                <h3 className="font-bold">{article.title}</h3>
+                <p className="mt-1">{article.description}</p>
+                <a 
+                  href={article.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-block mt-2 text-blue-500 hover:underline"
+                >
                   Read more
-                </Button>
-              </Box>
+                </a>
+              </div>
             ))}
-          </VStack>
-        </Box>
-
-        <Box w="100%">
-          <Heading size="md">Generate Image from Markdown</Heading>
-          <Textarea
+          </div>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Generate Image from Markdown</h2>
+          <textarea
             placeholder="Enter your markdown here"
             value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            mt={3}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMarkdown(e.target.value)}
+            className="w-full h-32 p-2 border rounded mb-3"
           />
-          <Button onClick={generateImage} mt={3}>Generate Image</Button>
+          <button 
+            onClick={generateImage} 
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Generate Image
+          </button>
           {imageUrl && (
-            <Box mt={3}>
-              <Image src={imageUrl} alt="Generated from markdown" />
-            </Box>
+            <div className="mt-3">
+              <img src={imageUrl} alt="Generated from markdown" className="max-w-full h-auto" />
+            </div>
           )}
-        </Box>
-      </VStack>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
 

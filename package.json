@@ -13,10 +13,6 @@
     "react-dom": "^18",
     "next": "14.2.5",
     "axios": "^0.21.1",
-    "@chakra-ui/react": "^1.6.5",
-    "@emotion/react": "^11.4.1",
-    "@emotion/styled": "^11.3.0",
-    "framer-motion": "^4.1.17",
     "marked": "^4.0.12",
     "chrome-aws-lambda": "^10.1.0",
     "puppeteer-core": "^10.1.0"
@@ -31,6 +27,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "@types/puppeteer": "^5.4.4",
-    "@types/marked": "^4.0.12"
+    "@types/marked": "^4.0.12",
+    "autoprefixer": "^10.4.14"
   }
 }
