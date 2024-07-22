@@ -33,72 +33,44 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
   }
 }
 
-
 function parseMarkdown(markdown: string) {
   const lines = markdown.split('\n');
   const elements = [];
-  let currentParagraph = '';
+  let currentSection = null;
 
   for (const line of lines) {
     if (line.startsWith('# ')) {
-      if (currentParagraph) {
-        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
-        currentParagraph = '';
+      if (currentSection) {
+        elements.push(currentSection);
       }
-      elements.push(<h1 key={elements.length}>{parseInline(line.slice(2))}</h1>);
+      currentSection = { title: line.slice(2), items: [] };
     } else if (line.startsWith('## ')) {
-      if (currentParagraph) {
-        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
-        currentParagraph = '';
+      if (currentSection) {
+        currentSection.items.push({ type: 'subtitle', content: line.slice(3) });
       }
-      elements.push(<h2 key={elements.length}>{parseInline(line.slice(3))}</h2>);
-    } else if (line.trim() === '') {
-      if (currentParagraph) {
-        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
-        currentParagraph = '';
+    } else if (line.startsWith('- ')) {
+      if (currentSection) {
+        currentSection.items.push({ type: 'listItem', content: line.slice(2) });
       }
-    } else {
-      currentParagraph += (currentParagraph ? ' ' : '') + line;
+    } else if (line.trim() !== '') {
+      if (currentSection) {
+        currentSection.items.push({ type: 'text', content: line });
+      }
     }
   }
 
-  if (currentParagraph) {
-    elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
+  if (currentSection) {
+    elements.push(currentSection);
   }
 
   return elements;
-}
-
-function parseInline(text: string) {
-  const parts = [];
-  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-    parts.push(
-      <span key={parts.length} style={{ color: '#3182ce' }}>
-        {match[1]}
-      </span>
-    );
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
-  return parts;
 }
 
 export async function POST(req: NextRequest) {
   const overallStartTime = Date.now();
   try {
     console.log('Start processing POST request');
-    const { markdown } = await req.json();
+    const { markdown, title, date } = await req.json();
 
     console.log('Start parsing Markdown');
     const startMarkdownParsing = Date.now();
@@ -108,76 +80,44 @@ export async function POST(req: NextRequest) {
     console.log('Start generating image');
     const startImageGeneration = Date.now();
 
-    const estimatedHeight = Math.max(630, 200 + parsedContent.length * 40);
-
     const image = new ImageResponse(
       (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-start',
+            alignItems: 'stretch',
             justifyContent: 'flex-start',
             width: '100%',
             height: '100%',
-            backgroundColor: 'white',
+            backgroundColor: '#f7fafc',
             padding: '40px',
+            fontFamily: 'Arial, sans-serif',
           }}
         >
-          {parsedContent.map((element, index) => {
-            if (element.type === 'h1') {
-              return (
-                <h1
-                  key={index}
-                  style={{
-                    fontSize: '40px',
-                    fontWeight: 'bold',
-                    color: '#1a202c',
-                    marginBottom: '16px',
-                    width: '100%',
-                  }}
-                >
-                  {element.props.children}
-                </h1>
-              );
-            } else if (element.type === 'h2') {
-              return (
-                <h2
-                  key={index}
-                  style={{
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#2d3748',
-                    marginBottom: '12px',
-                    marginTop: '20px',
-                    width: '100%',
-                  }}
-                >
-                  {element.props.children}
-                </h2>
-              );
-            } else {
-              return (
-                <p
-                  key={index}
-                  style={{
-                    fontSize: '20px',
-                    color: '#4a5568',
-                    lineHeight: '1.4',
-                    marginBottom: '12px',
-                    width: '100%',
-                  }}
-                >
-                  {element.props.children}
-                </p>
-              );
-            }
-          })}
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#1a202c', marginBottom: '10px' }}>{title}</h1>
+            <p style={{ fontSize: '18px', color: '#718096', marginBottom: '20px' }}>{date}</p>
+            {parsedContent.map((section, sectionIndex) => (
+              <div key={sectionIndex} style={{ marginBottom: '30px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#2d3748', marginBottom: '15px' }}>{section.title}</h2>
+                {section.items.map((item, itemIndex) => {
+                  if (item.type === 'subtitle') {
+                    return <h3 key={itemIndex} style={{ fontSize: '20px', fontWeight: 'bold', color: '#4a5568', marginBottom: '10px' }}>{item.content}</h3>;
+                  } else if (item.type === 'listItem') {
+                    return <p key={itemIndex} style={{ fontSize: '16px', color: '#4a5568', marginBottom: '5px', paddingLeft: '20px' }}>• {item.content}</p>;
+                  } else {
+                    return <p key={itemIndex} style={{ fontSize: '16px', color: '#4a5568', marginBottom: '10px' }}>{item.content}</p>;
+                  }
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       ),
       {
         width: 1200,
-        height: estimatedHeight,
+        height: 1600, // 增加高度以容纳更多内容
       }
     );
     console.log(`Image generated in ${Date.now() - startImageGeneration}ms`);
