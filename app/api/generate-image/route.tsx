@@ -51,20 +51,35 @@ export async function POST(req: NextRequest) {
       (
         <div
           style={{
-            fontSize: 40,
-            color: 'black',
-            background: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             width: '100%',
             height: '100%',
-            padding: '50px 200px',
-            textAlign: 'center',
-            justifyContent: 'center',
-            alignItems: 'center',
+            backgroundColor: 'white',
+            padding: '40px',
           }}
         >
-          {htmlContent.split('\n').map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: 'black',
+              lineHeight: '1.4',
+            }}
+          >
+            {htmlContent.split('\n').map((line, index) => (
+              <div key={index} style={{ marginBottom: '10px' }}>
+                {line}
+              </div>
+            ))}
+          </div>
         </div>
       ),
       {
