@@ -1,31 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageResponse } from '@vercel/og';
 import { marked } from 'marked';
+import axios from 'axios';
 import FormData from 'form-data';
-
-export const runtime = 'edge';
 
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '';
 
-async function uploadToImgBB(imageBuffer: ArrayBuffer): Promise<{ url: string, deleteUrl: string }> {
+async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; deleteUrl: string }> {
   const formData = new FormData();
-  formData.append('image', Buffer.from(imageBuffer).toString('base64'));
+  formData.append('image', imageBuffer.toString('base64'));
 
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-    method: 'POST',
-    body: formData,
+  const response = await axios.post(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, formData, {
+    headers: formData.getHeaders(),
   });
 
-  if (!response.ok) {
+  if (response.status !== 200) {
     throw new Error(`ImgBB API responded with status code ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = response.data;
 
   if (data.success && data.data?.url) {
     return {
       url: data.data.url,
-      deleteUrl: data.data.delete_url
+      deleteUrl: data.data.delete_url,
     };
   } else {
     throw new Error('Unexpected ImgBB response format');
@@ -64,8 +62,8 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // 获取图像的 ArrayBuffer
-    const imageBuffer = await image.arrayBuffer();
+    // 获取图像的 Buffer
+    const imageBuffer = Buffer.from(await image.arrayBuffer());
 
     // 上传到 ImgBB
     const { url, deleteUrl } = await uploadToImgBB(imageBuffer);
