@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageResponse } from '@vercel/og';
 import { marked } from 'marked';
-const https = await import('node:https');
 import FormData from 'form-data';
 
 export const runtime = 'edge';
@@ -12,39 +11,25 @@ async function uploadToImgBB(imageBuffer: ArrayBuffer): Promise<{ url: string, d
   const formData = new FormData();
   formData.append('image', Buffer.from(imageBuffer).toString('base64'));
 
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.imgbb.com',
-      path: `/1/upload?key=${IMGBB_API_KEY}`,
-      method: 'POST',
-      headers: formData.getHeaders()
-    }, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`ImgBB API responded with status code ${res.statusCode}`));
-          return;
-        }
-        try {
-          const parsedData = JSON.parse(data);
-          if (parsedData.success && parsedData.data?.url) {
-            resolve({
-              url: parsedData.data.url,
-              deleteUrl: parsedData.data.delete_url
-            });
-          } else {
-            reject(new Error('Unexpected ImgBB response format'));
-          }
-        } catch (error) {
-          reject(new Error('Failed to parse ImgBB response'));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    formData.pipe(req);
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: 'POST',
+    body: formData,
   });
+
+  if (!response.ok) {
+    throw new Error(`ImgBB API responded with status code ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.success && data.data?.url) {
+    return {
+      url: data.data.url,
+      deleteUrl: data.data.delete_url
+    };
+  } else {
+    throw new Error('Unexpected ImgBB response format');
+  }
 }
 
 export async function POST(req: NextRequest) {
