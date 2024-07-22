@@ -7,6 +7,9 @@ import FormData from 'form-data';
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '';
 
 async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; deleteUrl: string }> {
+  console.log('Start uploading to ImgBB');
+  const startTime = Date.now();
+  
   const formData = new FormData();
   formData.append('image', imageBuffer.toString('base64'));
 
@@ -21,6 +24,7 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
   const data = response.data;
 
   if (data.success && data.data?.url) {
+    console.log(`Image uploaded to ImgBB in ${Date.now() - startTime}ms`);
     return {
       url: data.data.url,
       deleteUrl: data.data.delete_url,
@@ -31,13 +35,18 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
 }
 
 export async function POST(req: NextRequest) {
+  const overallStartTime = Date.now();
   try {
+    console.log('Start processing POST request');
     const { markdown } = await req.json();
 
-    // 将 Markdown 转换为 HTML
+    console.log('Start converting Markdown to HTML');
+    const startMarkdownConversion = Date.now();
     const htmlContent = marked(markdown);
+    console.log(`Markdown converted to HTML in ${Date.now() - startMarkdownConversion}ms`);
 
-    // 生成图像
+    console.log('Start generating image');
+    const startImageGeneration = Date.now();
     const image = new ImageResponse(
       (
         <div
@@ -53,7 +62,9 @@ export async function POST(req: NextRequest) {
             alignItems: 'center',
           }}
         >
-          <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+          {htmlContent.split('\n').map((line, index) => (
+            <p key={index}>{line}</p>
+          ))}
         </div>
       ),
       {
@@ -61,16 +72,20 @@ export async function POST(req: NextRequest) {
         height: 630,
       }
     );
+    console.log(`Image generated in ${Date.now() - startImageGeneration}ms`);
 
-    // 获取图像的 Buffer
+    console.log('Start converting image to Buffer');
+    const startBufferConversion = Date.now();
     const imageBuffer = Buffer.from(await image.arrayBuffer());
+    console.log(`Image converted to Buffer in ${Date.now() - startBufferConversion}ms`);
 
-    // 上传到 ImgBB
     const { url, deleteUrl } = await uploadToImgBB(imageBuffer);
 
+    console.log(`Total processing time: ${Date.now() - overallStartTime}ms`);
     return NextResponse.json({ url, deleteUrl });
   } catch (error) {
     console.error('Error generating and uploading image:', error);
+    console.log(`Total processing time (with error): ${Date.now() - overallStartTime}ms`);
     return NextResponse.json(
       { message: 'Error generating and uploading image', error: (error as Error).message },
       { status: 500 }
