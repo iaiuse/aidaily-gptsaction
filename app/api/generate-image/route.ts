@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { marked } from 'marked';
-import chromium from 'chrome-aws-lambda';
 
-export const runtime = 'edge'; // 这表明我们使用的是边缘运行时
+export const runtime = 'edge';
+
+let chromium: any = null;
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +13,9 @@ export async function POST(req: NextRequest) {
     const htmlContent = marked(markdown);
 
     // 动态导入 chrome-aws-lambda
-    //const chromium = await import('chrome-aws-lambda');
+    if (!chromium) {
+      chromium = await import('chrome-aws-lambda');
+    }
 
     const browser = await chromium.puppeteer.launch({
       args: chromium.args,
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Error generating image:', error);
     return NextResponse.json(
-      { message: 'Error generating image' },
+      { message: 'Error generating image', error: (error as Error).message },
       { status: 500 }
     );
   }

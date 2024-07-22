@@ -4,22 +4,19 @@ const nextConfig = {
   swcMinify: true,
   output: 'standalone',
   typescript: {
-    // !! 警告 !!
-    // 危险区域，仅在您理解风险的情况下启用
-    // 这个标志允许生产构建产生成功，即使有类型错误
-    // 仅在你完全确定这样做是安全的情况下启用它
     ignoreBuildErrors: false,
   },
   eslint: {
-    // 如果您不想在构建过程中进行 ESLint 检查，可以设置为 true
     ignoreDuringBuilds: false,
   },
   experimental: {
     serverComponentsExternalPackages: ['chrome-aws-lambda'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (isServer) {
-      config.externals.push('chrome-aws-lambda');
+      config.externals.push({
+        'chrome-aws-lambda': 'commonjs chrome-aws-lambda',
+      });
     }
     return config;
   },
