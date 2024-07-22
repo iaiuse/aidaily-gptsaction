@@ -5,6 +5,16 @@ import FormData from 'form-data';
 
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '';
 
+type SectionItem = {
+  type: 'subtitle' | 'listItem' | 'text';
+  content: string;
+};
+
+type Section = {
+  title: string;
+  items: SectionItem[];
+};
+
 async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; deleteUrl: string }> {
   console.log('Start uploading to ImgBB');
   const startTime = Date.now();
@@ -33,10 +43,10 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
   }
 }
 
-function parseMarkdown(markdown: string) {
+function parseMarkdown(markdown: string): Section[] {
   const lines = markdown.split('\n');
-  const elements = [];
-  let currentSection = null;
+  const elements: Section[] = [];
+  let currentSection: Section | null = null;
 
   for (const line of lines) {
     if (line.startsWith('# ')) {
@@ -74,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     console.log('Start parsing Markdown');
     const startMarkdownParsing = Date.now();
-    const parsedContent = parseMarkdown(markdown);
+    const parsedContent: Section[] = parseMarkdown(markdown);
     console.log(`Markdown parsed in ${Date.now() - startMarkdownParsing}ms`);
 
     console.log('Start generating image');
