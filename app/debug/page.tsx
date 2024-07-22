@@ -84,7 +84,7 @@ const Debug: React.FC = () => {
           </button>
           {imageUrl && (
             <div className="mt-3">
-              <img src={imageUrl} alt="Generated from markdown" className="max-w-full h-auto" ></img>
+              <img src={imageUrl} alt="Generated from markdown" className="max-w-full h-auto" />
             </div>
           )}
         </div>
