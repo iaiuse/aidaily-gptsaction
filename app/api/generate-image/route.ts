@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { ImageResponse } from '@vercel/og';
 import { marked } from 'marked';
 
 export const runtime = 'edge';
-
-let chromium: any = null;
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,31 +11,34 @@ export async function POST(req: NextRequest) {
     // 将 Markdown 转换为 HTML
     const htmlContent = marked(markdown);
 
-    // 动态导入 chrome-aws-lambda
-    if (!chromium) {
-      chromium = await import('chrome-aws-lambda');
-    }
-
-    const browser = await chromium.puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-    });
-
-    const page = await browser.newPage();
-    await page.setContent(htmlContent);
-    const screenshot = await page.screenshot({ encoding: 'base64' });
-    await browser.close();
-
-    return NextResponse.json({ 
-      imageUrl: `data:image/png;base64,${screenshot}` 
-    });
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            fontSize: 40,
+            color: 'black',
+            background: 'white',
+            width: '100%',
+            height: '100%',
+            padding: '50px 200px',
+            textAlign: 'center',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        </div>
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
   } catch (error) {
     console.error('Error generating image:', error);
-    return NextResponse.json(
-      { message: 'Error generating image', error: (error as Error).message },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ message: 'Error generating image', error: (error as Error).message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
