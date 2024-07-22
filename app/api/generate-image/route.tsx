@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const overallStartTime = Date.now();
   try {
     console.log('Start processing POST request');
-    const { markdown } = await req.json();
+    const { markdown, title } = await req.json();
 
     console.log('Start converting Markdown to HTML');
     const startMarkdownConversion = Date.now();
@@ -47,6 +47,11 @@ export async function POST(req: NextRequest) {
 
     console.log('Start generating image');
     const startImageGeneration = Date.now();
+
+    // 计算内容的行数来估算高度
+    const lineCount = htmlContent.split('\n').length;
+    const estimatedHeight = Math.max(630, 200 + lineCount * 30); // 基础高度200px，每行估计30px
+
     const image = new ImageResponse(
       (
         <div
@@ -54,28 +59,42 @@ export async function POST(req: NextRequest) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             width: '100%',
             height: '100%',
             backgroundColor: 'white',
             padding: '40px',
           }}
         >
+          {/* 标题 */}
+          <div
+            style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: '#1a202c',
+              marginBottom: '20px',
+              textAlign: 'center',
+              width: '100%',
+            }}
+          >
+            {title}
+          </div>
+          {/* 内容 */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
               fontSize: '24px',
-              fontWeight: 'bold',
-              color: 'black',
-              lineHeight: '1.4',
+              color: '#4a5568',
+              lineHeight: '1.6',
+              width: '100%',
             }}
           >
             {htmlContent.split('\n').map((line, index) => (
-              <div key={index} style={{ marginBottom: '10px' }}>
+              <div key={index} style={{ marginBottom: '10px', width: '100%' }}>
                 {line}
               </div>
             ))}
@@ -84,7 +103,7 @@ export async function POST(req: NextRequest) {
       ),
       {
         width: 1200,
-        height: 630,
+        height: estimatedHeight,
       }
     );
     console.log(`Image generated in ${Date.now() - startImageGeneration}ms`);
