@@ -14,10 +14,6 @@ const nextConfig = {
       // 如果您不想在构建过程中进行 ESLint 检查，可以设置为 true
       ignoreDuringBuilds: false,
     },
-    experimental: {
-      // 启用 App Router
-      appDir: true,
-    },
   };
   
   export default nextConfig;
