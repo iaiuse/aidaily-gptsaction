@@ -34,23 +34,56 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
   }
 }
 
+function parseMarkdown(markdown: string) {
+  const lines = markdown.split('\n');
+  const elements = [];
+  let currentParagraph = '';
+
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      if (currentParagraph) {
+        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        currentParagraph = '';
+      }
+      elements.push(<h1 key={elements.length}>{line.slice(2)}</h1>);
+    } else if (line.startsWith('## ')) {
+      if (currentParagraph) {
+        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        currentParagraph = '';
+      }
+      elements.push(<h2 key={elements.length}>{line.slice(3)}</h2>);
+    } else if (line.trim() === '') {
+      if (currentParagraph) {
+        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        currentParagraph = '';
+      }
+    } else {
+      currentParagraph += (currentParagraph ? ' ' : '') + line;
+    }
+  }
+
+  if (currentParagraph) {
+    elements.push(<p key={elements.length}>{currentParagraph}</p>);
+  }
+
+  return elements;
+}
+
 export async function POST(req: NextRequest) {
   const overallStartTime = Date.now();
   try {
     console.log('Start processing POST request');
-    const { markdown, title } = await req.json();
+    const { markdown } = await req.json();
 
-    console.log('Start converting Markdown to HTML');
-    const startMarkdownConversion = Date.now();
-    const htmlContent = marked(markdown);
-    console.log(`Markdown converted to HTML in ${Date.now() - startMarkdownConversion}ms`);
+    console.log('Start parsing Markdown');
+    const startMarkdownParsing = Date.now();
+    const parsedContent = parseMarkdown(markdown);
+    console.log(`Markdown parsed in ${Date.now() - startMarkdownParsing}ms`);
 
     console.log('Start generating image');
     const startImageGeneration = Date.now();
 
-    // 计算内容的行数来估算高度
-    const lineCount = htmlContent.split('\n').length;
-    const estimatedHeight = Math.max(630, 200 + lineCount * 30); // 基础高度200px，每行估计30px
+    const estimatedHeight = Math.max(630, 200 + parsedContent.length * 50);
 
     const image = new ImageResponse(
       (
@@ -58,7 +91,7 @@ export async function POST(req: NextRequest) {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'flex-start',
             width: '100%',
             height: '100%',
@@ -66,39 +99,55 @@ export async function POST(req: NextRequest) {
             padding: '40px',
           }}
         >
-          {/* 标题 */}
-          <div
-            style={{
-              fontSize: '48px',
-              fontWeight: 'bold',
-              color: '#1a202c',
-              marginBottom: '20px',
-              textAlign: 'center',
-              width: '100%',
-            }}
-          >
-            {title}
-          </div>
-          {/* 内容 */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start',
-              textAlign: 'left',
-              fontSize: '24px',
-              color: '#4a5568',
-              lineHeight: '1.6',
-              width: '100%',
-            }}
-          >
-            {htmlContent.split('\n').map((line, index) => (
-              <div key={index} style={{ marginBottom: '10px', width: '100%' }}>
-                {line}
-              </div>
-            ))}
-          </div>
+          {parsedContent.map((element, index) => {
+            if (element.type === 'h1') {
+              return (
+                <h1
+                  key={index}
+                  style={{
+                    fontSize: '48px',
+                    fontWeight: 'bold',
+                    color: '#1a202c',
+                    marginBottom: '20px',
+                    width: '100%',
+                  }}
+                >
+                  {element.props.children}
+                </h1>
+              );
+            } else if (element.type === 'h2') {
+              return (
+                <h2
+                  key={index}
+                  style={{
+                    fontSize: '36px',
+                    fontWeight: 'bold',
+                    color: '#2d3748',
+                    marginBottom: '16px',
+                    marginTop: '24px',
+                    width: '100%',
+                  }}
+                >
+                  {element.props.children}
+                </h2>
+              );
+            } else {
+              return (
+                <p
+                  key={index}
+                  style={{
+                    fontSize: '24px',
+                    color: '#4a5568',
+                    lineHeight: '1.6',
+                    marginBottom: '16px',
+                    width: '100%',
+                  }}
+                >
+                  {element.props.children}
+                </p>
+              );
+            }
+          })}
         </div>
       ),
       {
