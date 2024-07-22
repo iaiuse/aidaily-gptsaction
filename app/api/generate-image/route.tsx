@@ -105,11 +105,18 @@ export async function POST(req: NextRequest) {
             fontFamily: 'Arial, sans-serif',
           }}
         >
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
             <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#1a202c', marginBottom: '10px' }}>{title}</h1>
             <p style={{ fontSize: '18px', color: '#718096', marginBottom: '20px' }}>{date}</p>
             {parsedContent.map((section, sectionIndex) => (
-              <div key={sectionIndex} style={{ marginBottom: '30px' }}>
+              <div key={sectionIndex} style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#2d3748', marginBottom: '15px' }}>{section.title}</h2>
                 {section.items.map((item, itemIndex) => {
                   if (item.type === 'subtitle') {
