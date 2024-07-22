@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -82,7 +84,7 @@ const Debug: React.FC = () => {
           </button>
           {imageUrl && (
             <div className="mt-3">
-              <img src={imageUrl} alt="Generated from markdown" className="max-w-full h-auto" />
+              <img src={imageUrl} alt="Generated from markdown" className="max-w-full h-auto" ></img>
             </div>
           )}
         </div>
