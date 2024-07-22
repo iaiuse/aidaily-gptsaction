@@ -1,31 +1,39 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import chromium from 'chrome-aws-lambda';
+import { NextRequest, NextResponse } from 'next/server';
 import { marked } from 'marked';
+import chromium from 'chrome-aws-lambda';
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+export const runtime = 'edge'; // 这表明我们使用的是边缘运行时
 
-  const { markdown } = req.body;
-
+export async function POST(req: NextRequest) {
   try {
+    const { markdown } = await req.json();
+
+    // 将 Markdown 转换为 HTML
     const htmlContent = marked(markdown);
+
+    // 动态导入 chrome-aws-lambda
+    //const chromium = await import('chrome-aws-lambda');
+
     const browser = await chromium.puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: chromium.headless,
     });
+
     const page = await browser.newPage();
     await page.setContent(htmlContent);
     const screenshot = await page.screenshot({ encoding: 'base64' });
     await browser.close();
 
-    res.status(200).json({ imageUrl: `data:image/png;base64,${screenshot}` });
+    return NextResponse.json({ 
+      imageUrl: `data:image/png;base64,${screenshot}` 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error generating image', error });
+    console.error('Error generating image:', error);
+    return NextResponse.json(
+      { message: 'Error generating image' },
+      { status: 500 }
+    );
   }
-};
-
-export default handler;
+}
