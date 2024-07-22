@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageResponse } from '@vercel/og';
-import { marked } from 'marked';
 import axios from 'axios';
 import FormData from 'form-data';
 
@@ -34,6 +33,7 @@ async function uploadToImgBB(imageBuffer: Buffer): Promise<{ url: string; delete
   }
 }
 
+
 function parseMarkdown(markdown: string) {
   const lines = markdown.split('\n');
   const elements = [];
@@ -42,19 +42,19 @@ function parseMarkdown(markdown: string) {
   for (const line of lines) {
     if (line.startsWith('# ')) {
       if (currentParagraph) {
-        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
         currentParagraph = '';
       }
-      elements.push(<h1 key={elements.length}>{line.slice(2)}</h1>);
+      elements.push(<h1 key={elements.length}>{parseInline(line.slice(2))}</h1>);
     } else if (line.startsWith('## ')) {
       if (currentParagraph) {
-        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
         currentParagraph = '';
       }
-      elements.push(<h2 key={elements.length}>{line.slice(3)}</h2>);
+      elements.push(<h2 key={elements.length}>{parseInline(line.slice(3))}</h2>);
     } else if (line.trim() === '') {
       if (currentParagraph) {
-        elements.push(<p key={elements.length}>{currentParagraph}</p>);
+        elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
         currentParagraph = '';
       }
     } else {
@@ -63,10 +63,35 @@ function parseMarkdown(markdown: string) {
   }
 
   if (currentParagraph) {
-    elements.push(<p key={elements.length}>{currentParagraph}</p>);
+    elements.push(<p key={elements.length}>{parseInline(currentParagraph)}</p>);
   }
 
   return elements;
+}
+
+function parseInline(text: string) {
+  const parts = [];
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <span key={parts.length} style={{ color: '#3182ce' }}>
+        {match[1]}
+      </span>
+    );
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
 }
 
 export async function POST(req: NextRequest) {
@@ -83,7 +108,7 @@ export async function POST(req: NextRequest) {
     console.log('Start generating image');
     const startImageGeneration = Date.now();
 
-    const estimatedHeight = Math.max(630, 200 + parsedContent.length * 50);
+    const estimatedHeight = Math.max(630, 200 + parsedContent.length * 40);
 
     const image = new ImageResponse(
       (
@@ -105,10 +130,10 @@ export async function POST(req: NextRequest) {
                 <h1
                   key={index}
                   style={{
-                    fontSize: '48px',
+                    fontSize: '40px',
                     fontWeight: 'bold',
                     color: '#1a202c',
-                    marginBottom: '20px',
+                    marginBottom: '16px',
                     width: '100%',
                   }}
                 >
@@ -120,11 +145,11 @@ export async function POST(req: NextRequest) {
                 <h2
                   key={index}
                   style={{
-                    fontSize: '36px',
+                    fontSize: '32px',
                     fontWeight: 'bold',
                     color: '#2d3748',
-                    marginBottom: '16px',
-                    marginTop: '24px',
+                    marginBottom: '12px',
+                    marginTop: '20px',
                     width: '100%',
                   }}
                 >
@@ -136,10 +161,10 @@ export async function POST(req: NextRequest) {
                 <p
                   key={index}
                   style={{
-                    fontSize: '24px',
+                    fontSize: '20px',
                     color: '#4a5568',
-                    lineHeight: '1.6',
-                    marginBottom: '16px',
+                    lineHeight: '1.4',
+                    marginBottom: '12px',
                     width: '100%',
                   }}
                 >
