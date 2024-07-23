@@ -43,6 +43,7 @@ async function fetchNewsForQuery(query: string, fromDate: string, sources: strin
   console.log("url:", url.toString());
 
   const response = await axios.get(url.toString());
+  console.log("response.data：" ,response.data);
   return response.data.articles.filter((article: NewsArticle) => !isArticleRemoved(article));
 }
 
