@@ -9,6 +9,13 @@ const DEFAULT_DAYS_AGO = parseInt(process.env.DEFAULT_DAYS_AGO || '1', 10);
 const DEFAULT_PAGE_SIZE = parseInt(process.env.DEFAULT_PAGE_SIZE || '20', 10);
 const DEFAULT_SORT_BY = process.env.DEFAULT_SORT_BY || 'publishedAt';
 
+console.log("Environment variables:");
+console.log("DEFAULT_QUERY:", DEFAULT_QUERY);
+console.log("DEFAULT_SOURCES:", DEFAULT_SOURCES);
+console.log("DEFAULT_DAYS_AGO:", DEFAULT_DAYS_AGO);
+console.log("DEFAULT_PAGE_SIZE:", DEFAULT_PAGE_SIZE);
+console.log("DEFAULT_SORT_BY:", DEFAULT_SORT_BY);
+
 interface NewsArticle {
   source: {
     id: string | null;
@@ -40,10 +47,12 @@ async function fetchNewsForQuery(query: string, fromDate: string, sources: strin
     url.searchParams.append('sources', sources);
   }
 
-  console.log("url:", url.toString());
+  console.log("Fetching news with URL:", url.toString());
+  console.log("PageSize for this query:", pageSize);
 
   const response = await axios.get(url.toString());
-  console.log("response.data：" ,response.data);
+  console.log("API Response status:", response.status);
+  console.log("Total results from API:", response.data.totalResults);
   return response.data.articles.filter((article: NewsArticle) => !isArticleRemoved(article));
 }
 
@@ -56,12 +65,14 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || DEFAULT_PAGE_SIZE.toString(), 10);
   const sortBy = searchParams.get('sortBy') || DEFAULT_SORT_BY;
 
+  console.log("Request parameters:");
   console.log("queries:", queries);
-  console.log("DEFAULT_QUERY:", DEFAULT_QUERY);
-  console.log("process.env.DEFAULT_NEWS_QUERY:", process.env.DEFAULT_NEWS_QUERY);
+  console.log("sources:", sources);
+  console.log("daysAgo:", daysAgo);
+  console.log("pageSize:", pageSize);
+  console.log("sortBy:", sortBy);
 
-
-  if (queries.length === 0 || (queries.length === 1 && queries[0] === '')) {
+  if (queries.length === 0) {
     return NextResponse.json({ message: 'Query parameter is required' }, { status: 400 });
   }
 
@@ -69,49 +80,47 @@ export async function GET(request: NextRequest) {
   fromDate.setDate(fromDate.getDate() - daysAgo);
   const fromDateString = fromDate.toISOString().split('T')[0];
 
+  console.log("From date:", fromDateString);
 
-  
-    try {
-      const allArticles: NewsArticle[] = [];
-      const querySizePerKeyword = Math.floor(pageSize / queries.length);
+  try {
+    const allArticles: NewsArticle[] = [];
+    const querySizePerKeyword = Math.floor(pageSize / queries.length);
+    
+    console.log(`Total queries: ${queries.length}`);
+    console.log(`Query size per keyword: ${querySizePerKeyword}`);
+
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      console.log(`Fetching news for query ${i + 1}: "${query}"`);
       
-      console.log(`Total queries: ${queries.length}`);
-      console.log(`Query size per keyword: ${querySizePerKeyword}`);
-  
-      for (let i = 0; i < queries.length; i++) {
-        const query = queries[i];
-        console.log(`Fetching news for query ${i + 1}: "${query}"`);
-        
-        const articles = await fetchNewsForQuery(query, fromDateString, sources, querySizePerKeyword, sortBy);
-        
-        console.log(`Query "${query}" returned ${articles.length} articles`);
-        
-        allArticles.push(...articles);
-        console.log(`Total articles after query ${i + 1}: ${allArticles.length}`);
-      }
-  
-      console.log(`Total articles before deduplication: ${allArticles.length}`);
-  
-      // 去重
-      const uniqueArticles = Array.from(new Set(allArticles.map(a => a.url)))
-        .map(url => allArticles.find(a => a.url === url));
-  
-      console.log(`Total unique articles after deduplication: ${uniqueArticles.length}`);
-  
-      // 按发布日期排序
-      uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
-  
-      // 限制返回数量
-      //const limitedArticles = uniqueArticles.slice(0, pageSize);
-      //console.log(`Final number of articles returned: ${limitedArticles.length}`);
-  
-      return NextResponse.json({ 
-        status: "ok",
-        totalResults: uniqueArticles.length,
-        articles: uniqueArticles
-      });
-    } catch (error) {
-      console.error('Error fetching news:', error);
-      return NextResponse.json({ message: 'Error fetching news' }, { status: 500 });
+      const articles = await fetchNewsForQuery(query, fromDateString, sources, querySizePerKeyword, sortBy);
+      
+      console.log(`Query "${query}" returned ${articles.length} articles`);
+      
+      allArticles.push(...articles);
+      console.log(`Total articles after query ${i + 1}: ${allArticles.length}`);
     }
+
+    console.log(`Total articles before deduplication: ${allArticles.length}`);
+
+    // 去重
+    const uniqueArticles = Array.from(new Set(allArticles.map(a => a.url)))
+      .map(url => allArticles.find(a => a.url === url));
+
+    console.log(`Total unique articles after deduplication: ${uniqueArticles.length}`);
+
+    // 按发布日期排序
+    uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
+
+    console.log(`Final number of articles returned: ${uniqueArticles.length}`);
+
+    return NextResponse.json({ 
+      status: "ok",
+      totalResults: uniqueArticles.length,
+      articles: uniqueArticles
+    });
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return NextResponse.json({ message: 'Error fetching news' }, { status: 500 });
   }
+}
