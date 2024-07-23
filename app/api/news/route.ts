@@ -8,6 +8,8 @@ const DEFAULT_SOURCES = process.env.DEFAULT_NEWS_SOURCES || '';
 const DEFAULT_DAYS_AGO = parseInt(process.env.DEFAULT_DAYS_AGO || '1', 10);
 const DEFAULT_PAGE_SIZE = parseInt(process.env.DEFAULT_PAGE_SIZE || '20', 10);
 const DEFAULT_SORT_BY = process.env.DEFAULT_SORT_BY || 'publishedAt';
+const DEFAULT_LIMIT_ARTICLES = parseInt(process.env.DEFAULT_LIMIT_ARTICLES || '50', 10);
+
 
 console.log("Environment variables:");
 console.log("DEFAULT_QUERY:", DEFAULT_QUERY);
@@ -112,12 +114,18 @@ export async function GET(request: NextRequest) {
     // 按发布日期排序
     uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
 
-    console.log(`Final number of articles returned: ${uniqueArticles.length}`);
+    console.log(`Total unique articles after duplication: ${uniqueArticles.length}`);
+
+    console.log(`Total articles before limited: ${uniqueArticles.length}`);
+
+    // 限制返回数量 
+    const limitedArticles = uniqueArticles.slice(0, DEFAULT_LIMIT_ARTICLES); 
+    console.log(`Final number of articles returned: ${limitedArticles.length}`); 
 
     return NextResponse.json({ 
       status: "ok",
-      totalResults: uniqueArticles.length,
-      articles: uniqueArticles
+      totalResults: limitedArticles.length,
+      articles: limitedArticles
     });
   } catch (error) {
     console.error('Error fetching news:', error);
