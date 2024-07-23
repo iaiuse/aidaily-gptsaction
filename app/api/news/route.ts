@@ -84,16 +84,16 @@ export async function GET(request: NextRequest) {
 
   try {
     const allArticles: NewsArticle[] = [];
-    const querySizePerKeyword = Math.floor(pageSize / queries.length);
+    //const querySizePerKeyword = Math.floor(pageSize / queries.length);
     
     console.log(`Total queries: ${queries.length}`);
-    console.log(`Query size per keyword: ${querySizePerKeyword}`);
+    //console.log(`Query size per keyword: ${querySizePerKeyword}`);
 
     for (let i = 0; i < queries.length; i++) {
       const query = queries[i];
       console.log(`Fetching news for query ${i + 1}: "${query}"`);
       
-      const articles = await fetchNewsForQuery(query, fromDateString, sources, querySizePerKeyword, sortBy);
+      const articles = await fetchNewsForQuery(query, fromDateString, sources, pageSize, sortBy);
       
       console.log(`Query "${query}" returned ${articles.length} articles`);
       
