@@ -69,32 +69,49 @@ export async function GET(request: NextRequest) {
   fromDate.setDate(fromDate.getDate() - daysAgo);
   const fromDateString = fromDate.toISOString().split('T')[0];
 
-  try {
-    const allArticles: NewsArticle[] = [];
-    const querySizePerKeyword = Math.floor(pageSize / queries.length);
 
-    for (const query of queries) {
-      const articles = await fetchNewsForQuery(query, fromDateString, sources, querySizePerKeyword, sortBy);
-      allArticles.push(...articles);
+  
+    try {
+      const allArticles: NewsArticle[] = [];
+      const querySizePerKeyword = Math.floor(pageSize / queries.length);
+      
+      console.log(`Total queries: ${queries.length}`);
+      console.log(`Query size per keyword: ${querySizePerKeyword}`);
+  
+      for (let i = 0; i < queries.length; i++) {
+        const query = queries[i];
+        console.log(`Fetching news for query ${i + 1}: "${query}"`);
+        
+        const articles = await fetchNewsForQuery(query, fromDateString, sources, querySizePerKeyword, sortBy);
+        
+        console.log(`Query "${query}" returned ${articles.length} articles`);
+        
+        allArticles.push(...articles);
+        console.log(`Total articles after query ${i + 1}: ${allArticles.length}`);
+      }
+  
+      console.log(`Total articles before deduplication: ${allArticles.length}`);
+  
+      // 去重
+      const uniqueArticles = Array.from(new Set(allArticles.map(a => a.url)))
+        .map(url => allArticles.find(a => a.url === url));
+  
+      console.log(`Total unique articles after deduplication: ${uniqueArticles.length}`);
+  
+      // 按发布日期排序
+      uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
+  
+      // 限制返回数量
+      //const limitedArticles = uniqueArticles.slice(0, pageSize);
+      //console.log(`Final number of articles returned: ${limitedArticles.length}`);
+  
+      return NextResponse.json({ 
+        status: "ok",
+        totalResults: uniqueArticles.length,
+        articles: uniqueArticles
+      });
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      return NextResponse.json({ message: 'Error fetching news' }, { status: 500 });
     }
-
-    // 去重
-    const uniqueArticles = Array.from(new Set(allArticles.map(a => a.url)))
-      .map(url => allArticles.find(a => a.url === url));
-
-    // 按发布日期排序
-    uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
-
-    // 限制返回数量
-    // const limitedArticles = uniqueArticles.slice(0, pageSize);
-
-    return NextResponse.json({ 
-      status: "ok",
-      totalResults: uniqueArticles.length,
-      articles: uniqueArticles
-    });
-  } catch (error) {
-    console.error('Error fetching news:', error);
-    return NextResponse.json({ message: 'Error fetching news' }, { status: 500 });
   }
-}
