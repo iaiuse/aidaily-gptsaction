@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
   const sortBy = searchParams.get('sortBy') || DEFAULT_SORT_BY;
 
   console.log("queries:", queries);
+  console.log("DEFAULT_QUERY:", DEFAULT_QUERY);
+  console.log("process.env.DEFAULT_NEWS_QUERY:", process.env.DEFAULT_NEWS_QUERY);
 
   if (queries.length === 0 || (queries.length === 1 && queries[0] === '')) {
     return NextResponse.json({ message: 'Query parameter is required' }, { status: 400 });
