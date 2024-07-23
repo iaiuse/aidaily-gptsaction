@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 const API_KEY = process.env.NEWS_API_KEY || "";
-const DEFAULT_QUERY = process.env.DEFAULT_NEWS_QUERY || '';
+const DEFAULT_QUERY = (process.env.DEFAULT_NEWS_QUERY || '').split('|').filter(q => q.trim() !== '');
 const DEFAULT_SOURCES = process.env.DEFAULT_NEWS_SOURCES || '';
 const DEFAULT_DAYS_AGO = parseInt(process.env.DEFAULT_DAYS_AGO || '1', 10);
 const DEFAULT_PAGE_SIZE = parseInt(process.env.DEFAULT_PAGE_SIZE || '20', 10);
@@ -49,7 +49,7 @@ async function fetchNewsForQuery(query: string, fromDate: string, sources: strin
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const queryParam = searchParams.get('query');
-  const queries = queryParam ? queryParam.split('|') : [DEFAULT_QUERY];
+  const queries = queryParam ? queryParam.split('|').filter(q => q.trim() !== '') : DEFAULT_QUERY;
   const sources = searchParams.get('sources') || DEFAULT_SOURCES;
   const daysAgo = parseInt(searchParams.get('daysAgo') || DEFAULT_DAYS_AGO.toString(), 10);
   const pageSize = parseInt(searchParams.get('pageSize') || DEFAULT_PAGE_SIZE.toString(), 10);
@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
   console.log("queries:", queries);
   console.log("DEFAULT_QUERY:", DEFAULT_QUERY);
   console.log("process.env.DEFAULT_NEWS_QUERY:", process.env.DEFAULT_NEWS_QUERY);
+
 
   if (queries.length === 0 || (queries.length === 1 && queries[0] === '')) {
     return NextResponse.json({ message: 'Query parameter is required' }, { status: 400 });
