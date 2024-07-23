@@ -85,12 +85,12 @@ export async function GET(request: NextRequest) {
     uniqueArticles.sort((a, b) => new Date(b!.publishedAt).getTime() - new Date(a!.publishedAt).getTime());
 
     // 限制返回数量
-    const limitedArticles = uniqueArticles.slice(0, pageSize);
+    // const limitedArticles = uniqueArticles.slice(0, pageSize);
 
     return NextResponse.json({ 
       status: "ok",
-      totalResults: limitedArticles.length,
-      articles: limitedArticles
+      totalResults: uniqueArticles.length,
+      articles: uniqueArticles
     });
   } catch (error) {
     console.error('Error fetching news:', error);
