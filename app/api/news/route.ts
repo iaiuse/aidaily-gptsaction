@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-const API_KEY = process.env.NEWS_API_KEY;
+const API_KEY = process.env.NEWS_API_KEY || "";
 const DEFAULT_QUERY = process.env.DEFAULT_NEWS_QUERY || '';
 const DEFAULT_SOURCES = process.env.DEFAULT_NEWS_SOURCES || '';
 const DEFAULT_DAYS_AGO = parseInt(process.env.DEFAULT_DAYS_AGO || '1', 10);
