@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+本示例旨在让缺乏编程基础，又想折腾的小伙伴一个尝试的机会
 
-## Getting Started
 
-First, run the development server:
+[Demo]([AI News SpecialList](https://chatgpt.com/g/g-JhWVB5XMe-rain-s-ai-news-specialist)) / [issues](https://github.com/iaiuse/aidaily-gptsaction/issues) 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiaiuse%2Faidaily-gptsaction&env=OPENAI_API_KEY&project-name=aidaily-gptsaction&repository-name=aidaily-gptsaction)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 系统截图
+![调试界面](https://github.com/user-attachments/assets/d55553e2-d7d3-40c1-8729-f15677fcdd2a)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+![调试界面](https://github.com/user-attachments/assets/3d648b11-e342-41fd-bd8d-ce94378eb3e0)
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+![AI日报GPTs初始化界面](https://github.com/user-attachments/assets/b2034590-d391-4a0f-801a-b88c6301ed98)
 
-## Learn More
+![AI日报搜索结果](https://github.com/user-attachments/assets/67297eab-1a1c-4040-b677-3c437a99bb16)
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Discuss with us/讨论
 
-## Deploy on Vercel
+![cover](https://github.com/iaiuse/aidaily-gptsaction/issues))
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features/ 特性
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+1. 获取当日AI最新新闻，翻译成简体中文
+2. 整理需要的新闻，指定合理的分类
+3. 根据选好的新闻，制作海报图片
+
+## Roadmap/ 计划
+
+- [ ] 1. 展示模板功能，美化日报展示
+- [ ] 2. 完善的安全和认证和机制
+- [ ] 3. 完善的后台管理功能，包括信息源维护，日志维护等
+- [ ] 4. 预读信息功能，定期获取新闻缓存等待召唤
+- [ ] 5. 增加个性化功能
+
+## Business Version
+
+不错不错
+
+## Get Started
+
+暂无
+
+## FAQ
+
+暂无
+
+## Vercel Deployment
+
+| key | 用途 | 注册地址 |
+| -- | -- | -- |
+| NEWS_API_KEY| 新闻查询API，免费100次一天 | https://newsapi.org/ |
+| IMGBB_API_KEY | 免费图床，且用且珍惜 | https://imgbb.com/ |
+| DEFAULT_NEWS_QUERY | 默认搜索关键字，用竖线分隔 | 可选 |
+| DEFAULT_PAGE_SIZE | 默认返回结果一页的数量 | 可选 | 
+| DEFAULT_DAYS_AGO | 默认新闻更新日期，默认是1，也就是昨天开始的所有新闻 | 可选 |
+
+## Docker Deployment
+
+### Docker Local Setup
+
+暂无
+
+### Docker-Image
+
+暂无
+
+### Local Development Setup
+
+暂无
+
+### Manual Setup
+
+暂无
+
+
+
